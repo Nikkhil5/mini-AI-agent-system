@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="search-section">
+    <h2 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-primary);">
+        <i class="fas fa-search"></i> Start Your Research
+    </h2>
+    
+    {% if error %}
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="post" action="/query" class="search-form">
+        <input 
+            type="text" 
+            name="query" 
+            class="search-input"
+            placeholder="Enter your research query... e.g., 'Impact of AI on healthcare'" 
+            required
+            maxlength="200"
+        >
+        <button type="submit" class="search-button">
+            <i class="fas fa-rocket"></i>
+            Research
+        </button>
+    </form>
+    
+    <div class="loading">
+        <div class="spinner"></div>
+        <span>Searching and analyzing sources...</span>
+    </div>
+</div>
+
+<div class="reports-section">
+    <h2>
+        <i class="fas fa-history"></i>
+        Research History
+        {% if reports %}
+        <span class="badge">{{ reports|length }} reports</span>
+        {% endif %}
+    </h2>
+    
+    {% if reports %}
+    <div class="reports-grid">
+        {% for rep in reports %}
+        <div class="report-card" onclick="location.href='/report/{{ rep.id }}'">
+            <a href="/report/{{ rep.id }}" class="report-title">
+                {{ rep.title or rep.query }}
+            </a>
+            <div class="report-meta">
+                <span><i class="fas fa-calendar"></i> {{ rep.created_at[:10] }}</span>
+                <span><i class="fas fa-clock"></i> {{ rep.created_at[11:19] }}</span>
+                <span><i class="fas fa-search"></i> {{ rep.query[:50] }}{% if rep.query|length > 50 %}...{% endif %}</span>
+            </div>
+            <div class="report-summary">
+                {{ rep.summary[:150] }}{% if rep.summary|length > 150 %}...{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-file-alt"></i>
+        <h3>No research reports yet</h3>
+        <p>Start by entering a research query above to generate your first AI-powered report.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
