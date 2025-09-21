@@ -36,7 +36,7 @@ os.makedirs(os.path.join(BASE_DIR, "static"), exist_ok=True)
 try:
     app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 except:
-    pass  # Skip if static directory doesn't exist
+    pass  # Skip if static directory doesn't exist then 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
