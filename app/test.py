@@ -34,7 +34,7 @@ try:
         headers=headers,
         json=payload,
         timeout=120,  # increased from 30s to 120s
-        proxies={"http": None, "https": None}  # force no proxy
+        proxies={"http": None, "https": None}  # Disable proxies for this request
     )
     response.raise_for_status()
     data = response.json()
