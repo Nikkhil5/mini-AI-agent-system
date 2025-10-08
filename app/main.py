@@ -34,17 +34,15 @@ except Exception:
     pass
 
 
-app = FastAPI()
-
 @app.get("/")
 async def root():
     return {"message": "AI Research Agent is running"}
+
 
 @app.post("/query", response_class=HTMLResponse)
 async def submit_query(request: Request, query: str = Form(...)):
     try:
         loop = asyncio.get_running_loop()
-        # run_agent_for_query is sync, so run in executor
         result = await loop.run_in_executor(None, run_agent_for_query, query)
         if result.get("success"):
             return RedirectResponse(url=f"/report/{result['report_id']}", status_code=303)
@@ -58,6 +56,7 @@ async def submit_query(request: Request, query: str = Form(...)):
         return templates.TemplateResponse(
             "index.html", {"request": request, "reports": reports, "error": str(e)})
 
+
 @app.get("/report/{report_id}", response_class=HTMLResponse)
 async def view_report(request: Request, report_id: int):
     rep = get_report(report_id)
@@ -65,9 +64,11 @@ async def view_report(request: Request, report_id: int):
         raise HTTPException(status_code=404, detail="Report not found")
     return templates.TemplateResponse("report.html", {"request": request, "r": rep})
 
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "message": "AI Research Agent is running"}
+
 
 if __name__ == "__main__":
     import uvicorn
