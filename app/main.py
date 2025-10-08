@@ -33,10 +33,12 @@ try:
 except Exception:
     pass
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    reports = list_reports()
-    return templates.TemplateResponse("index.html", {"request": request, "reports": reports, "error": None})
+
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    return {"message": "AI Research Agent is running"}
 
 @app.post("/query", response_class=HTMLResponse)
 async def submit_query(request: Request, query: str = Form(...)):
