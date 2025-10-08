@@ -8,67 +8,53 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Initialize database
-init_db() 
+init_db()
 
-# Check API keys early
-SERPAPI_API_KEY =os.getenv("SERPAPI_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 
 if not SERPAPI_API_KEY:
-    print("⚠️  Warning: SERPAPI_API_KEY not set")
-if not OPENAI_API_KEY:
-    print("⚠️  Warning: OPENAI_API_KEY not set")
+    print("⚠️ Warning: SERPAPI_API_KEY not set")
+if not HUGGINGFACE_API_KEY:
+    print("⚠️ Warning: HUGGINGFACE_API_KEY not set")
 
 app = FastAPI(title="AI Research Agent")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# Create directories if they don't exist
 os.makedirs(os.path.join(BASE_DIR, "templates"), exist_ok=True)
 os.makedirs(os.path.join(BASE_DIR, "static"), exist_ok=True)
 
-# Mount static files
 try:
     app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-except:
-    pass  # Skip if static directory doesn't exist then 
+except Exception:
+    pass
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    try:
-        reports = list_reports()
-        return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "reports": reports, "error": None}
-        )
-    except Exception as e:
-        return {"error": f"Template error: {str(e)}", "message": "Check if templates/index.html exists"}
+    reports = list_reports()
+    return templates.TemplateResponse("index.html", {"request": request, "reports": reports, "error": None})
 
 @app.post("/query", response_class=HTMLResponse)
 async def submit_query(request: Request, query: str = Form(...)):
     try:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
+        # run_agent_for_query is sync, so run in executor
         result = await loop.run_in_executor(None, run_agent_for_query, query)
-        
         if result.get("success"):
             return RedirectResponse(url=f"/report/{result['report_id']}", status_code=303)
         else:
             reports = list_reports()
             return templates.TemplateResponse(
                 "index.html",
-                {"request": request, "reports": reports, "error": result.get("error", "Unknown error")}
-            )
+                {"request": request, "reports": reports, "error": result.get("error", "Unknown error")})
     except Exception as e:
         reports = list_reports()
         return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "reports": reports, "error": str(e)}
-        )
+            "index.html", {"request": request, "reports": reports, "error": str(e)})
 
 @app.get("/report/{report_id}", response_class=HTMLResponse)
 async def view_report(request: Request, report_id: int):

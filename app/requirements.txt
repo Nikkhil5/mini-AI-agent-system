@@ -22,3 +22,4 @@ typing-extensions==4.12.2
 
 # Optional: Remove problematic packages or upgrade them
 # aiofiles==23.2.0  # Only if needed
+flask==3.0.0
